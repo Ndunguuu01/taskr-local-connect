@@ -9,13 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TaskersRouteImport } from './routes/taskers'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TaskerUserIdRouteImport } from './routes/tasker.$userId'
+import { Route as JobJobIdRouteImport } from './routes/job.$jobId'
 import { Route as AuthenticatedTaskerRouteImport } from './routes/_authenticated/tasker'
+import { Route as AuthenticatedPostJobRouteImport } from './routes/_authenticated/post-job'
+import { Route as AuthenticatedEditProfileRouteImport } from './routes/_authenticated/edit-profile'
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
 
+const TaskersRoute = TaskersRouteImport.update({
+  id: '/taskers',
+  path: '/taskers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -35,11 +45,32 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaskerUserIdRoute = TaskerUserIdRouteImport.update({
+  id: '/tasker/$userId',
+  path: '/tasker/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobJobIdRoute = JobJobIdRouteImport.update({
+  id: '/job/$jobId',
+  path: '/job/$jobId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedTaskerRoute = AuthenticatedTaskerRouteImport.update({
   id: '/tasker',
   path: '/tasker',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPostJobRoute = AuthenticatedPostJobRouteImport.update({
+  id: '/post-job',
+  path: '/post-job',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEditProfileRoute =
+  AuthenticatedEditProfileRouteImport.update({
+    id: '/edit-profile',
+    path: '/edit-profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientRoute = AuthenticatedClientRouteImport.update({
   id: '/client',
   path: '/client',
@@ -50,15 +81,25 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/taskers': typeof TaskersRoute
   '/client': typeof AuthenticatedClientRoute
+  '/edit-profile': typeof AuthenticatedEditProfileRoute
+  '/post-job': typeof AuthenticatedPostJobRoute
   '/tasker': typeof AuthenticatedTaskerRoute
+  '/job/$jobId': typeof JobJobIdRoute
+  '/tasker/$userId': typeof TaskerUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/taskers': typeof TaskersRoute
   '/client': typeof AuthenticatedClientRoute
+  '/edit-profile': typeof AuthenticatedEditProfileRoute
+  '/post-job': typeof AuthenticatedPostJobRoute
   '/tasker': typeof AuthenticatedTaskerRoute
+  '/job/$jobId': typeof JobJobIdRoute
+  '/tasker/$userId': typeof TaskerUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,22 +107,52 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/taskers': typeof TaskersRoute
   '/_authenticated/client': typeof AuthenticatedClientRoute
+  '/_authenticated/edit-profile': typeof AuthenticatedEditProfileRoute
+  '/_authenticated/post-job': typeof AuthenticatedPostJobRoute
   '/_authenticated/tasker': typeof AuthenticatedTaskerRoute
+  '/job/$jobId': typeof JobJobIdRoute
+  '/tasker/$userId': typeof TaskerUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/sitemap.xml' | '/client' | '/tasker'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/sitemap.xml'
+    | '/taskers'
+    | '/client'
+    | '/edit-profile'
+    | '/post-job'
+    | '/tasker'
+    | '/job/$jobId'
+    | '/tasker/$userId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/sitemap.xml' | '/client' | '/tasker'
+  to:
+    | '/'
+    | '/auth'
+    | '/sitemap.xml'
+    | '/taskers'
+    | '/client'
+    | '/edit-profile'
+    | '/post-job'
+    | '/tasker'
+    | '/job/$jobId'
+    | '/tasker/$userId'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/sitemap.xml'
+    | '/taskers'
     | '/_authenticated/client'
+    | '/_authenticated/edit-profile'
+    | '/_authenticated/post-job'
     | '/_authenticated/tasker'
+    | '/job/$jobId'
+    | '/tasker/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -89,10 +160,20 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TaskersRoute: typeof TaskersRoute
+  JobJobIdRoute: typeof JobJobIdRoute
+  TaskerUserIdRoute: typeof TaskerUserIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/taskers': {
+      id: '/taskers'
+      path: '/taskers'
+      fullPath: '/taskers'
+      preLoaderRoute: typeof TaskersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -121,11 +202,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tasker/$userId': {
+      id: '/tasker/$userId'
+      path: '/tasker/$userId'
+      fullPath: '/tasker/$userId'
+      preLoaderRoute: typeof TaskerUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/job/$jobId': {
+      id: '/job/$jobId'
+      path: '/job/$jobId'
+      fullPath: '/job/$jobId'
+      preLoaderRoute: typeof JobJobIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/tasker': {
       id: '/_authenticated/tasker'
       path: '/tasker'
       fullPath: '/tasker'
       preLoaderRoute: typeof AuthenticatedTaskerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/post-job': {
+      id: '/_authenticated/post-job'
+      path: '/post-job'
+      fullPath: '/post-job'
+      preLoaderRoute: typeof AuthenticatedPostJobRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/edit-profile': {
+      id: '/_authenticated/edit-profile'
+      path: '/edit-profile'
+      fullPath: '/edit-profile'
+      preLoaderRoute: typeof AuthenticatedEditProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/client': {
@@ -140,11 +249,15 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientRoute: typeof AuthenticatedClientRoute
+  AuthenticatedEditProfileRoute: typeof AuthenticatedEditProfileRoute
+  AuthenticatedPostJobRoute: typeof AuthenticatedPostJobRoute
   AuthenticatedTaskerRoute: typeof AuthenticatedTaskerRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientRoute: AuthenticatedClientRoute,
+  AuthenticatedEditProfileRoute: AuthenticatedEditProfileRoute,
+  AuthenticatedPostJobRoute: AuthenticatedPostJobRoute,
   AuthenticatedTaskerRoute: AuthenticatedTaskerRoute,
 }
 
@@ -156,17 +269,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TaskersRoute: TaskersRoute,
+  JobJobIdRoute: JobJobIdRoute,
+  TaskerUserIdRoute: TaskerUserIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -520,6 +520,19 @@ export type Database = {
             }
             Returns: string
           }
+      create_job: {
+        Args: {
+          _budget: number
+          _category: string
+          _description: string
+          _lat: number
+          _lng: number
+          _location_address: string
+          _scheduled_date?: string
+          _title: string
+        }
+        Returns: string
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -651,6 +664,42 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_job_public: {
+        Args: { _job_id: string }
+        Returns: {
+          budget: number
+          category: string
+          client_id: string
+          client_name: string
+          created_at: string
+          description: string
+          id: string
+          lat: number
+          lng: number
+          location_address: string
+          scheduled_date: string
+          status: string
+          title: string
+        }[]
+      }
+      get_tasker_public: {
+        Args: { _user_id: string }
+        Returns: {
+          avatar_url: string
+          average_rating: number
+          bio: string
+          category: string
+          full_name: string
+          hourly_rate: number
+          is_available: boolean
+          lat: number
+          lng: number
+          location_address: string
+          skills: string[]
+          total_jobs: number
+          user_id: string
+        }[]
+      }
       gettransactionid: { Args: never; Returns: unknown }
       has_role: {
         Args: {
@@ -1312,6 +1361,19 @@ export type Database = {
           new_srid_in: number
           schema_name: string
           table_name: string
+        }
+        Returns: string
+      }
+      upsert_tasker_profile: {
+        Args: {
+          _bio: string
+          _category: string
+          _hourly_rate: number
+          _is_available: boolean
+          _lat: number
+          _lng: number
+          _location_address: string
+          _skills: string[]
         }
         Returns: string
       }
