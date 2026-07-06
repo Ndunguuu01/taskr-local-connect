@@ -29,6 +29,7 @@ export function SiteHeader() {
           <span className="text-lg">Flexworkers</span>
         </Link>
         <nav className="hidden items-center gap-6 text-sm md:flex">
+          <Link to="/taskers" className="text-muted-foreground hover:text-foreground">Find taskers</Link>
           <Link to="/" hash="how-it-works" className="text-muted-foreground hover:text-foreground">How it works</Link>
           <Link to="/" hash="categories" className="text-muted-foreground hover:text-foreground">Categories</Link>
         </nav>
