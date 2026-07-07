@@ -20,6 +20,8 @@ import { Route as AuthenticatedTaskerRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedPostJobRouteImport } from './routes/_authenticated/post-job'
 import { Route as AuthenticatedEditProfileRouteImport } from './routes/_authenticated/edit-profile'
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
+import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
+import { Route as AuthenticatedBookingBookingIdRouteImport } from './routes/_authenticated/booking.$bookingId'
 
 const TaskersRoute = TaskersRouteImport.update({
   id: '/taskers',
@@ -76,30 +78,45 @@ const AuthenticatedClientRoute = AuthenticatedClientRouteImport.update({
   path: '/client',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBookingsRoute = AuthenticatedBookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBookingBookingIdRoute =
+  AuthenticatedBookingBookingIdRouteImport.update({
+    id: '/booking/$bookingId',
+    path: '/booking/$bookingId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taskers': typeof TaskersRoute
+  '/bookings': typeof AuthenticatedBookingsRoute
   '/client': typeof AuthenticatedClientRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
   '/post-job': typeof AuthenticatedPostJobRoute
   '/tasker': typeof AuthenticatedTaskerRoute
   '/job/$jobId': typeof JobJobIdRoute
   '/tasker/$userId': typeof TaskerUserIdRoute
+  '/booking/$bookingId': typeof AuthenticatedBookingBookingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taskers': typeof TaskersRoute
+  '/bookings': typeof AuthenticatedBookingsRoute
   '/client': typeof AuthenticatedClientRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
   '/post-job': typeof AuthenticatedPostJobRoute
   '/tasker': typeof AuthenticatedTaskerRoute
   '/job/$jobId': typeof JobJobIdRoute
   '/tasker/$userId': typeof TaskerUserIdRoute
+  '/booking/$bookingId': typeof AuthenticatedBookingBookingIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -108,12 +125,14 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taskers': typeof TaskersRoute
+  '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
   '/_authenticated/client': typeof AuthenticatedClientRoute
   '/_authenticated/edit-profile': typeof AuthenticatedEditProfileRoute
   '/_authenticated/post-job': typeof AuthenticatedPostJobRoute
   '/_authenticated/tasker': typeof AuthenticatedTaskerRoute
   '/job/$jobId': typeof JobJobIdRoute
   '/tasker/$userId': typeof TaskerUserIdRoute
+  '/_authenticated/booking/$bookingId': typeof AuthenticatedBookingBookingIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -122,24 +141,28 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/taskers'
+    | '/bookings'
     | '/client'
     | '/edit-profile'
     | '/post-job'
     | '/tasker'
     | '/job/$jobId'
     | '/tasker/$userId'
+    | '/booking/$bookingId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/sitemap.xml'
     | '/taskers'
+    | '/bookings'
     | '/client'
     | '/edit-profile'
     | '/post-job'
     | '/tasker'
     | '/job/$jobId'
     | '/tasker/$userId'
+    | '/booking/$bookingId'
   id:
     | '__root__'
     | '/'
@@ -147,12 +170,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/taskers'
+    | '/_authenticated/bookings'
     | '/_authenticated/client'
     | '/_authenticated/edit-profile'
     | '/_authenticated/post-job'
     | '/_authenticated/tasker'
     | '/job/$jobId'
     | '/tasker/$userId'
+    | '/_authenticated/booking/$bookingId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -244,21 +269,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/bookings': {
+      id: '/_authenticated/bookings'
+      path: '/bookings'
+      fullPath: '/bookings'
+      preLoaderRoute: typeof AuthenticatedBookingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/booking/$bookingId': {
+      id: '/_authenticated/booking/$bookingId'
+      path: '/booking/$bookingId'
+      fullPath: '/booking/$bookingId'
+      preLoaderRoute: typeof AuthenticatedBookingBookingIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
   AuthenticatedClientRoute: typeof AuthenticatedClientRoute
   AuthenticatedEditProfileRoute: typeof AuthenticatedEditProfileRoute
   AuthenticatedPostJobRoute: typeof AuthenticatedPostJobRoute
   AuthenticatedTaskerRoute: typeof AuthenticatedTaskerRoute
+  AuthenticatedBookingBookingIdRoute: typeof AuthenticatedBookingBookingIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
   AuthenticatedClientRoute: AuthenticatedClientRoute,
   AuthenticatedEditProfileRoute: AuthenticatedEditProfileRoute,
   AuthenticatedPostJobRoute: AuthenticatedPostJobRoute,
   AuthenticatedTaskerRoute: AuthenticatedTaskerRoute,
+  AuthenticatedBookingBookingIdRoute: AuthenticatedBookingBookingIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

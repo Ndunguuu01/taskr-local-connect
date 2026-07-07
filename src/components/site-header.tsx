@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-session";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { NotificationBell } from "@/components/notification-bell";
 
 export function SiteHeader() {
   const { user, isTasker } = useSession();
@@ -37,8 +38,12 @@ export function SiteHeader() {
           {user ? (
             <>
               <Button asChild variant="ghost" size="sm">
+                <Link to="/bookings">Bookings</Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
                 <Link to={dashboardPath}>Dashboard</Link>
               </Button>
+              <NotificationBell />
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="mr-1 h-4 w-4" /> Sign out
               </Button>
