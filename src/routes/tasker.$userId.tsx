@@ -1,9 +1,9 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { MapView } from "@/components/map-view";
+import { BookTaskerDialog } from "@/components/book-tasker-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Star, MapPin } from "lucide-react";
 
@@ -44,7 +44,7 @@ function TaskerProfile() {
               {!t.is_available && <Badge variant="outline">Currently unavailable</Badge>}
             </div>
           </div>
-          <Button asChild><Link to="/auth" search={{ mode: "signup", role: "client" }}>Book this tasker</Link></Button>
+          <BookTaskerDialog taskerId={t.user_id} taskerName={t.full_name} defaultAmount={t.hourly_rate} />
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-3">

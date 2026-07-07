@@ -520,6 +520,10 @@ export type Database = {
             }
             Returns: string
           }
+      create_booking: {
+        Args: { _amount?: number; _job_id: string; _tasker_id: string }
+        Returns: string
+      }
       create_job: {
         Args: {
           _budget: number
@@ -531,6 +535,10 @@ export type Database = {
           _scheduled_date?: string
           _title: string
         }
+        Returns: string
+      }
+      create_review: {
+        Args: { _booking_id: string; _comment?: string; _rating: number }
         Returns: string
       }
       disablelongtransactions: { Args: never; Returns: string }
@@ -664,6 +672,26 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_booking_detail: {
+        Args: { _booking_id: string }
+        Returns: {
+          amount: number
+          client_id: string
+          client_name: string
+          i_reviewed: boolean
+          id: string
+          job_description: string
+          job_id: string
+          job_title: string
+          my_role: string
+          other_reviewed: boolean
+          payment_status: string
+          scheduled_date: string
+          status: string
+          tasker_id: string
+          tasker_name: string
+        }[]
+      }
       get_job_public: {
         Args: { _job_id: string }
         Returns: {
@@ -680,6 +708,24 @@ export type Database = {
           scheduled_date: string
           status: string
           title: string
+        }[]
+      }
+      get_my_bookings: {
+        Args: never
+        Returns: {
+          amount: number
+          client_id: string
+          client_name: string
+          created_at: string
+          id: string
+          job_id: string
+          job_title: string
+          payment_status: string
+          role: string
+          scheduled_date: string
+          status: string
+          tasker_id: string
+          tasker_name: string
         }[]
       }
       get_tasker_public: {
@@ -709,6 +755,9 @@ export type Database = {
         Returns: boolean
       }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      mark_all_notifications_read: { Args: never; Returns: undefined }
+      mark_messages_read: { Args: { _booking_id: string }; Returns: undefined }
+      mark_notification_read: { Args: { _id: string }; Returns: undefined }
       nearby_taskers: {
         Args: {
           _category?: string
@@ -772,6 +821,10 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      send_message: {
+        Args: { _booking_id: string; _content: string }
+        Returns: string
+      }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }
         Returns: unknown
@@ -1354,6 +1407,10 @@ export type Database = {
         Returns: unknown
       }
       unlockrows: { Args: { "": string }; Returns: number }
+      update_booking_status: {
+        Args: { _booking_id: string; _status: string }
+        Returns: undefined
+      }
       updategeometrysrid: {
         Args: {
           catalogn_name: string
