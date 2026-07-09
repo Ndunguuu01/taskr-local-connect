@@ -21,6 +21,7 @@ import { Route as AuthenticatedPostJobRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedEditProfileRouteImport } from './routes/_authenticated/edit-profile'
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
 import { Route as AuthenticatedBookingsRouteImport } from './routes/_authenticated/bookings'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedBookingBookingIdRouteImport } from './routes/_authenticated/booking.$bookingId'
 
 const TaskersRoute = TaskersRouteImport.update({
@@ -83,6 +84,11 @@ const AuthenticatedBookingsRoute = AuthenticatedBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBookingBookingIdRoute =
   AuthenticatedBookingBookingIdRouteImport.update({
     id: '/booking/$bookingId',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taskers': typeof TaskersRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/bookings': typeof AuthenticatedBookingsRoute
   '/client': typeof AuthenticatedClientRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taskers': typeof TaskersRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/bookings': typeof AuthenticatedBookingsRoute
   '/client': typeof AuthenticatedClientRoute
   '/edit-profile': typeof AuthenticatedEditProfileRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/taskers': typeof TaskersRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/bookings': typeof AuthenticatedBookingsRoute
   '/_authenticated/client': typeof AuthenticatedClientRoute
   '/_authenticated/edit-profile': typeof AuthenticatedEditProfileRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/taskers'
+    | '/admin'
     | '/bookings'
     | '/client'
     | '/edit-profile'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/taskers'
+    | '/admin'
     | '/bookings'
     | '/client'
     | '/edit-profile'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/taskers'
+    | '/_authenticated/admin'
     | '/_authenticated/bookings'
     | '/_authenticated/client'
     | '/_authenticated/edit-profile'
@@ -276,6 +288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/booking/$bookingId': {
       id: '/_authenticated/booking/$bookingId'
       path: '/booking/$bookingId'
@@ -287,6 +306,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedBookingsRoute: typeof AuthenticatedBookingsRoute
   AuthenticatedClientRoute: typeof AuthenticatedClientRoute
   AuthenticatedEditProfileRoute: typeof AuthenticatedEditProfileRoute
@@ -296,6 +316,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedBookingsRoute: AuthenticatedBookingsRoute,
   AuthenticatedClientRoute: AuthenticatedClientRoute,
   AuthenticatedEditProfileRoute: AuthenticatedEditProfileRoute,

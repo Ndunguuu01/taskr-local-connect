@@ -520,6 +520,42 @@ export type Database = {
             }
             Returns: string
           }
+      admin_cancel_booking: {
+        Args: { _booking_id: string }
+        Returns: undefined
+      }
+      admin_delete_job: { Args: { _job_id: string }; Returns: undefined }
+      admin_grant_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      admin_list_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_suspended: boolean
+          phone: string
+          roles: string[]
+        }[]
+      }
+      admin_revoke_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      admin_set_suspended: {
+        Args: { _suspended: boolean; _user_id: string }
+        Returns: undefined
+      }
+      admin_stats: { Args: never; Returns: Json }
       create_booking: {
         Args: { _amount?: number; _job_id: string; _tasker_id: string }
         Returns: string
