@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { NotificationBell } from "@/components/notification-bell";
 
 export function SiteHeader() {
-  const { user, isTasker } = useSession();
+  const { user, isTasker, isAdmin } = useSession();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -43,6 +43,11 @@ export function SiteHeader() {
               <Button asChild variant="ghost" size="sm">
                 <Link to={dashboardPath}>Dashboard</Link>
               </Button>
+              {isAdmin && (
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/admin">Admin</Link>
+                </Button>
+              )}
               <NotificationBell />
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="mr-1 h-4 w-4" /> Sign out
