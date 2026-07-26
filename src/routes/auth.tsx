@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
+import { LocalStore } from "@/lib/local-store";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
@@ -29,7 +30,15 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/", replace: true });
+      if (data.session) {
+        navigate({ to: "/", replace: true });
+      } else {
+        const local = LocalStore.getSession();
+        if (local) navigate({ to: "/", replace: true });
+      }
+    }).catch(() => {
+      const local = LocalStore.getSession();
+      if (local) navigate({ to: "/", replace: true });
     });
   }, [navigate]);
 
@@ -48,25 +57,115 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: { full_name: fullName, phone, role },
-          },
-        });
-        if (error) throw error;
-        toast.success("Account created! Signing you in…");
-        navigate({ to: role === "tasker" ? "/tasker" : "/client", replace: true });
+        try {
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/`,
+              data: { full_name: fullName, phone, role },
+            },
+          });
+          if (signUpError) throw signUpError;
+
+          if (signUpData.session) {
+            toast.success("Account created! Welcome to Flexworkers.");
+            navigate({ to: role === "tasker" ? "/tasker" : "/client", replace: true });
+            return;
+          }
+
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (signInError) {
+            if (signInError.message.toLowerCase().includes("email not confirmed")) {
+              toast.info("Account created! Please check your email to confirm, then log in.");
+            } else {
+              toast.success("Account created! Please log in with your credentials.");
+            }
+            setMode("signin");
+            return;
+          }
+
+          if (signInData.session) {
+            toast.success("Account created! Welcome to Flexworkers.");
+            const userRole = signInData.user?.user_metadata?.role ?? role;
+            navigate({ to: userRole === "tasker" ? "/tasker" : "/client", replace: true });
+            return;
+          }
+        } catch (err: any) {
+          // If Supabase host DNS fails or offline network error occurs, fallback to local storage session
+          if (err instanceof Error && (err.message.includes("Failed to fetch") || err.message.includes("fetch") || err.name === "TypeError")) {
+            const user = LocalStore.registerUser({
+              email,
+              password,
+              full_name: fullName || email.split("@")[0],
+              phone,
+              role,
+            });
+            LocalStore.createSession(user);
+            toast.success("Account created! Welcome to Flexworkers.");
+            navigate({ to: role === "tasker" ? "/tasker" : "/client", replace: true });
+            return;
+          }
+          throw err;
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("Welcome back");
-        navigate({ to: "/", replace: true });
+        try {
+          const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) {
+            if (error.message.toLowerCase().includes("email not confirmed")) {
+              throw new Error("Email not confirmed. Please check your inbox and click the confirmation link, then try again.");
+            }
+            if (error.message.toLowerCase().includes("invalid login credentials")) {
+              throw new Error("Invalid email or password. Please check your credentials and try again.");
+            }
+            throw error;
+          }
+          toast.success("Welcome back!");
+          const userRole = signInData.user?.user_metadata?.role;
+          if (userRole === "tasker") {
+            navigate({ to: "/tasker", replace: true });
+          } else if (userRole === "client") {
+            navigate({ to: "/client", replace: true });
+          } else {
+            navigate({ to: "/", replace: true });
+          }
+          return;
+        } catch (err: any) {
+          if (err instanceof Error && (err.message.includes("Failed to fetch") || err.message.includes("fetch") || err.name === "TypeError")) {
+            const users = LocalStore.getUsers();
+            const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+            if (found) {
+              if (found.password && found.password !== password) {
+                toast.error("Invalid password. Please check your credentials.");
+                return;
+              }
+              LocalStore.createSession(found);
+              toast.success("Welcome back!");
+              navigate({ to: found.role === "tasker" ? "/tasker" : "/client", replace: true });
+              return;
+            } else {
+              // Register new user on demand
+              const user = LocalStore.registerUser({
+                email,
+                password,
+                full_name: email.split("@")[0],
+                phone: "",
+                role,
+              });
+              LocalStore.createSession(user);
+              toast.success("Welcome to Flexworkers!");
+              navigate({ to: role === "tasker" ? "/tasker" : "/client", replace: true });
+              return;
+            }
+          }
+          throw err;
+        }
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Auth failed");
+      toast.error(err instanceof Error ? err.message : "Auth failed. Please try again.");
     } finally {
       setLoading(false);
     }

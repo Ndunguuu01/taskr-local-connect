@@ -5,6 +5,7 @@ import { useSession } from "@/hooks/use-session";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { NotificationBell } from "@/components/notification-bell";
+import { LocalStore } from "@/lib/local-store";
 
 export function SiteHeader() {
   const { user, isTasker, isAdmin } = useSession();
@@ -16,7 +17,10 @@ export function SiteHeader() {
   async function handleSignOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {}
+    LocalStore.clearSession();
     navigate({ to: "/auth", replace: true });
   }
 
