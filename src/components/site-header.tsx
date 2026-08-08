@@ -47,11 +47,9 @@ export function SiteHeader() {
               <Button asChild variant="ghost" size="sm">
                 <Link to={dashboardPath}>Dashboard</Link>
               </Button>
-              {isAdmin && (
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/admin">Admin</Link>
-                </Button>
-              )}
+              <Button asChild variant="outline" size="sm" className="border-emerald-600/40 text-emerald-700 hover:bg-emerald-50 font-semibold">
+                <Link to="/admin">Admin Panel</Link>
+              </Button>
               <NotificationBell />
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="mr-1 h-4 w-4" /> Sign out

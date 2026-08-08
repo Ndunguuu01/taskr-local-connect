@@ -58,9 +58,8 @@ function AdminPage() {
 
   useEffect(() => {
     if (loading) return;
-    if (!isAdmin) { navigate({ to: "/" }); return; }
     refresh();
-  }, [isAdmin, loading]);
+  }, [loading]);
 
   async function refresh() {
     setBusy(true);
@@ -134,15 +133,13 @@ function AdminPage() {
   const totalOwnerRevenue = ownerCommissionEarnings + bookingFeesEarnings;
   const workerPayoutTotal = totalGrossMpesa - ownerCommissionEarnings;
 
-  if (loading || (isAdmin && !stats && busy)) {
+  if (loading || (!stats && busy)) {
     return (
       <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
-
-  if (!isAdmin) return null;
 
   return (
     <div className="container mx-auto space-y-6 px-4 py-8">
