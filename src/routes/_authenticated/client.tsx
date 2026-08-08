@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Briefcase, Plus, Users, Star, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+import { LocalStore } from "@/lib/local-store";
+
 export const Route = createFileRoute("/_authenticated/client")({
   head: () => ({ meta: [{ title: "Client dashboard — Flexworkers" }] }),
   component: ClientDashboard,
@@ -20,9 +22,36 @@ function ClientDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    supabase.from("jobs").select("id, title, category, status, location_address, created_at").eq("client_id", user.id).order("created_at", { ascending: false })
-      .then(({ data }) => { setJobs((data ?? []) as Job[]); setLoading(false); });
+    let active = true;
+    (async () => {
+      let remoteJobs: Job[] = [];
+      try {
+        const { data } = await supabase.from("jobs").select("id, title, category, status, location_address, created_at").order("created_at", { ascending: false });
+        if (data) remoteJobs = data as Job[];
+      } catch {}
+
+      const localJobs = LocalStore.getJobs().map((j) => ({
+        id: j.id,
+        title: j.title,
+        category: j.category,
+        status: j.status,
+        location_address: j.location_address,
+        created_at: j.created_at,
+      }));
+
+      // Merge local and remote jobs uniquely by id
+      const map = new Map<string, Job>();
+      [...localJobs, ...remoteJobs].forEach((j) => map.set(j.id, j));
+      const sorted = Array.from(map.values()).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      if (active) {
+        setJobs(sorted);
+        setLoading(false);
+      }
+    })();
+    return () => { active = false; };
   }, [user]);
 
   const active = jobs.filter((j) => j.status !== "completed" && j.status !== "cancelled").length;

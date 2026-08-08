@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, Wrench, Star, User, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { LocalStore } from "@/lib/local-store";
 
 export const Route = createFileRoute("/_authenticated/tasker")({
   head: () => ({ meta: [{ title: "Freelance worker dashboard — Flexworkers" }] }),
@@ -22,19 +23,46 @@ function TaskerDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
     (async () => {
-      const { data } = await (supabase.rpc as any)("get_tasker_public", { _user_id: user.id });
-      const p = Array.isArray(data) ? data[0] : null;
+      let p: Profile | null = null;
+      if (user) {
+        try {
+          const { data } = await (supabase.rpc as any)("get_tasker_public", { _user_id: user.id });
+          p = Array.isArray(data) ? data[0] : null;
+        } catch {}
+      }
+
+      if (!p) {
+        const rawLocal = localStorage.getItem("flexworkers_local_profile");
+        if (rawLocal) {
+          const parsed = JSON.parse(rawLocal);
+          p = {
+            lat: parsed.lat ?? -1.286389,
+            lng: parsed.lng ?? 36.817223,
+            average_rating: 5.0,
+            total_jobs: 1,
+            is_available: parsed.is_available ?? true,
+            location_address: parsed.location_address ?? "Nairobi",
+          };
+        }
+      }
+
       setProfile(p);
-      if (p?.lat != null && p?.lng != null) {
+      
+      // Fetch open jobs from Supabase + LocalStore
+      let openJobs: any[] = [];
+      try {
         const { data: jd } = await (supabase.from("jobs") as any)
           .select("id, title, category, status, location_address, budget, created_at")
           .eq("status", "open")
-          .order("created_at", { ascending: false })
-          .limit(20);
-        setJobs(jd ?? []);
-      }
+          .order("created_at", { ascending: false });
+        if (jd) openJobs = jd;
+      } catch {}
+
+      const localJobs = LocalStore.getJobs().filter((j) => j.status === "open");
+      const jobMap = new Map<string, any>();
+      [...localJobs, ...openJobs].forEach((j) => jobMap.set(j.id, j));
+      setJobs(Array.from(jobMap.values()));
       setLoading(false);
     })();
   }, [user]);

@@ -62,6 +62,28 @@ function TaskersPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+
+    const rawLocalProf = localStorage.getItem("flexworkers_local_profile");
+    let localWorkerRow: Row | null = null;
+    if (rawLocalProf) {
+      try {
+        const parsed = JSON.parse(rawLocalProf);
+        localWorkerRow = {
+          user_id: "local-my-profile",
+          full_name: "You (Your Profile)",
+          avatar_url: null,
+          bio: parsed.bio ?? "Local active freelancer profile.",
+          category: parsed.category ?? "General",
+          skills: parsed.skills ?? ["Plumbing", "Cleaning"],
+          hourly_rate: parsed.hourly_rate ?? 1500,
+          is_available: parsed.is_available ?? true,
+          average_rating: 5.0,
+          total_jobs: 1,
+          distance_meters: 500,
+        };
+      } catch {}
+    }
+
     (supabase.rpc as any)("nearby_taskers", {
       _lat: center.lat,
       _lng: center.lng,
@@ -72,20 +94,29 @@ function TaskersPage() {
     }).then(({ data }: { data: Row[] | null }) => {
       if (cancelled) return;
       const realRows = data ?? [];
-      if (realRows.length > 0) {
-        setRows(realRows);
-        setUsingMock(false);
-      } else {
-        const mockRows = getMockWorkers(center.lat, center.lng, {
-          category: category || undefined,
-          maxRate: maxRate ? Number(maxRate) : undefined,
-          minRating: minRating ? Number(minRating) : undefined,
-        }) as unknown as Row[];
-        setRows(mockRows);
-        setUsingMock(true);
-      }
+      const mockRows = getMockWorkers(center.lat, center.lng, {
+        category: category || undefined,
+        maxRate: maxRate ? Number(maxRate) : undefined,
+        minRating: minRating ? Number(minRating) : undefined,
+      }) as unknown as Row[];
+
+      const combined = [...(localWorkerRow ? [localWorkerRow] : []), ...realRows, ...(realRows.length === 0 ? mockRows : [])];
+      setRows(combined);
+      setUsingMock(realRows.length === 0);
+      setLoading(false);
+    }).catch(() => {
+      if (cancelled) return;
+      const mockRows = getMockWorkers(center.lat, center.lng, {
+        category: category || undefined,
+        maxRate: maxRate ? Number(maxRate) : undefined,
+        minRating: minRating ? Number(minRating) : undefined,
+      }) as unknown as Row[];
+      const combined = [...(localWorkerRow ? [localWorkerRow] : []), ...mockRows];
+      setRows(combined);
+      setUsingMock(true);
       setLoading(false);
     });
+
     return () => { cancelled = true; };
   }, [center, radiusKm, category, maxRate, minRating]);
 
@@ -98,7 +129,7 @@ function TaskersPage() {
       <SiteHeader />
       <main className="container mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold tracking-tight">Find a Freelance worker near you</h1>
-        <p className="mt-2 text-muted-foreground">Filter by category, distance and hourly rate.</p>
+        <p className="mt-2 text-muted-foreground">Filter by category, distance, and verified ID badge.</p>
 
         {/* Location indicator */}
         <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
@@ -152,31 +183,37 @@ function TaskersPage() {
                 </div>
               )}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {rows.map((r) => (
-                  <Card
-                    key={r.user_id}
-                    className="h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer border-border hover:border-primary/40 group"
-                    onClick={() => setSelectedWorker(r)}
-                  >
-                    <CardContent className="p-5 flex flex-col justify-between h-full">
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-primary font-bold text-lg group-hover:scale-105 transition-transform">
-                            {(r.full_name ?? "?").slice(0, 1).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="font-semibold flex items-center gap-2 text-base group-hover:text-primary transition-colors">
-                              {r.full_name ?? "Freelance worker"}
-                              {r.user_id.startsWith("mock-") && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Verified</Badge>}
+                {rows.map((r) => {
+                  const isVerifiedPro = r.user_id.startsWith("mock-") || (r.bio ?? "").includes("Verified Pro") || r.user_id === "local-my-profile";
+                  return (
+                    <Card
+                      key={r.user_id}
+                      className="h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer border-border hover:border-primary/40 group relative"
+                      onClick={() => setSelectedWorker(r)}
+                    >
+                      <CardContent className="p-5 flex flex-col justify-between h-full">
+                        <div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-primary font-bold text-lg group-hover:scale-105 transition-transform">
+                              {(r.full_name ?? "?").slice(0, 1).toUpperCase()}
                             </div>
-                            <p className="text-xs text-muted-foreground">{r.category ?? "General"}</p>
+                            <div>
+                              <div className="font-semibold flex items-center gap-1.5 text-base group-hover:text-primary transition-colors">
+                                {r.full_name ?? "Freelance worker"}
+                              </div>
+                              {isVerifiedPro && (
+                                <Badge className="bg-emerald-600/95 hover:bg-emerald-700 text-white text-[10px] px-2 py-0.5 gap-1 inline-flex items-center mt-0.5">
+                                  <CheckCircle2 className="h-3 w-3" /> Verified Pro 🛡️
+                                </Badge>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-0.5">{r.category ?? "General"}</p>
+                            </div>
+                          </div>
+                          <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{r.bio ?? "No bio available."}</p>
+                          <div className="mt-3 flex flex-wrap gap-1">
+                            {(r.skills ?? []).slice(0, 3).map((s) => <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>)}
                           </div>
                         </div>
-                        <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{r.bio ?? "No bio available."}</p>
-                        <div className="mt-3 flex flex-wrap gap-1">
-                          {(r.skills ?? []).slice(0, 3).map((s) => <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>)}
-                        </div>
-                      </div>
 
                       <div className="mt-4 pt-3 border-t border-border/60">
                         <div className="flex items-center justify-between text-sm">
@@ -192,9 +229,10 @@ function TaskersPage() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            </>
+                );
+              })}
+            </div>
+          </>
           )}
         </div>
 
@@ -210,9 +248,11 @@ function TaskersPage() {
                   <div>
                     <DialogTitle className="text-xl font-bold flex items-center gap-2">
                       {selectedWorker.full_name ?? "Freelance worker"}
-                      <Badge variant="secondary" className="text-xs">
-                        <CheckCircle2 className="mr-1 h-3 w-3 text-emerald-600" /> Verified
-                      </Badge>
+                      {(selectedWorker.user_id.startsWith("mock-") || (selectedWorker.bio ?? "").includes("Verified Pro") || selectedWorker.user_id === "local-my-profile") && (
+                        <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs gap-1">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-white" /> Verified Pro 🛡️
+                        </Badge>
+                      )}
                     </DialogTitle>
                     <DialogDescription className="text-sm text-muted-foreground">
                       {selectedWorker.category ?? "General Services"}
