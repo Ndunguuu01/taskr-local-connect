@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Shield, Users, Briefcase, CalendarCheck, Star, Search, Smartphone, DollarSign, TrendingUp, Percent, Award, ArrowUpRight } from "lucide-react";
+import { Loader2, Shield, Users, Briefcase, CalendarCheck, Star, Search, Smartphone, DollarSign, TrendingUp, Percent, Award, ArrowUpRight, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin Dashboard — Flexworkers" }, { name: "robots", content: "noindex" }] }),
