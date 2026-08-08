@@ -9,10 +9,32 @@ import { Star, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/tasker/$userId")({
   loader: async ({ params }) => {
-    const { data } = await (supabase.rpc as any)("get_tasker_public", { _user_id: params.userId });
-    const row = Array.isArray(data) ? data[0] : null;
-    if (!row) throw notFound();
-    return row;
+    try {
+      const { data } = await (supabase.rpc as any)("get_tasker_public", { _user_id: params.userId });
+      const row = Array.isArray(data) ? data[0] : null;
+      if (row) return row;
+    } catch {}
+
+    const rawLocalProf = localStorage.getItem("flexworkers_local_profile");
+    if (rawLocalProf || params.userId === "local-my-profile") {
+      const parsed = rawLocalProf ? JSON.parse(rawLocalProf) : {};
+      return {
+        user_id: params.userId,
+        full_name: "You (Freelance Worker)",
+        category: parsed.category ?? "General",
+        bio: parsed.bio ?? "Active local freelance worker profile.",
+        skills: parsed.skills ?? ["Plumbing", "Cleaning"],
+        hourly_rate: parsed.hourly_rate ?? 1500,
+        average_rating: 5.0,
+        total_jobs: 1,
+        is_available: parsed.is_available ?? true,
+        location_address: parsed.location_address ?? "Nairobi",
+        lat: parsed.lat ?? -1.286389,
+        lng: parsed.lng ?? 36.817223,
+      };
+    }
+
+    throw notFound();
   },
   head: ({ loaderData }: any) => ({
     meta: [

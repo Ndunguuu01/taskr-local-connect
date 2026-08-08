@@ -12,6 +12,8 @@ import { MpesaPaymentDialog } from "@/components/mpesa-payment-dialog";
 import { toast } from "sonner";
 import { ArrowLeft, Wallet, Calendar, CheckCircle2 } from "lucide-react";
 
+import { LocalStore } from "@/lib/local-store";
+
 export const Route = createFileRoute("/_authenticated/booking/$bookingId")({
   head: () => ({ meta: [{ title: "Booking — Flexworkers" }] }),
   component: BookingDetail,
@@ -48,15 +50,46 @@ function BookingDetail() {
   const [loading, setLoading] = useState(true);
 
   async function load() {
-    const { data } = await (supabase.rpc as any)("get_booking_detail", { _booking_id: bookingId });
-    const row = Array.isArray(data) ? data[0] : null;
+    let row: Detail | null = null;
+    try {
+      const { data } = await (supabase.rpc as any)("get_booking_detail", { _booking_id: bookingId });
+      row = Array.isArray(data) ? data[0] : null;
+    } catch {}
+
+    if (!row) {
+      const localBooking = LocalStore.getBookings().find((bk) => bk.id === bookingId);
+      if (localBooking) {
+        const matchingJob = LocalStore.getJobs().find((j) => j.id === localBooking.job_id);
+        row = {
+          id: localBooking.id,
+          job_id: localBooking.job_id,
+          job_title: matchingJob?.title ?? "Freelance Service Booking",
+          job_description: matchingJob?.description ?? "Service booking request.",
+          status: localBooking.status,
+          amount: localBooking.amount ?? 1500,
+          payment_status: localBooking.payment_status ?? "unpaid",
+          mpesa_transaction_id: null,
+          scheduled_date: localBooking.scheduled_date,
+          client_id: localBooking.client_id,
+          client_name: "Client",
+          tasker_id: localBooking.tasker_id,
+          tasker_name: "Freelance worker",
+          my_role: "client",
+          i_reviewed: false,
+          other_reviewed: false,
+        };
+      }
+    }
+
     setB(row);
     if (row) {
-      const { data: rv } = await supabase.from("reviews")
-        .select("id,rating,comment,created_at,reviewer_id")
-        .eq("booking_id", bookingId)
-        .order("created_at", { ascending: false });
-      setReviews((rv ?? []) as any[]);
+      try {
+        const { data: rv } = await supabase.from("reviews")
+          .select("id,rating,comment,created_at,reviewer_id")
+          .eq("booking_id", bookingId)
+          .order("created_at", { ascending: false });
+        setReviews((rv ?? []) as any[]);
+      } catch {}
     }
     setLoading(false);
   }

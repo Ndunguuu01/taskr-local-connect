@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { Briefcase } from "lucide-react";
 
+import { LocalStore } from "@/lib/local-store";
+
 export const Route = createFileRoute("/_authenticated/bookings")({
   head: () => ({ meta: [{ title: "My bookings — Flexworkers" }] }),
   component: BookingsPage,
@@ -29,10 +31,37 @@ function BookingsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
     (async () => {
-      const { data } = await (supabase.rpc as any)("get_my_bookings");
-      setRows((data ?? []) as Row[]);
+      let remoteRows: Row[] = [];
+      if (user) {
+        try {
+          const { data } = await (supabase.rpc as any)("get_my_bookings");
+          if (data) remoteRows = data as Row[];
+        } catch {}
+      }
+
+      const localBookings = LocalStore.getBookings().map((b) => {
+        const matchingJob = LocalStore.getJobs().find((j) => j.id === b.job_id);
+        return {
+          id: b.id,
+          job_title: matchingJob?.title ?? "Freelance Job Booking",
+          status: b.status,
+          amount: b.amount,
+          scheduled_date: b.scheduled_date,
+          created_at: b.created_at,
+          client_name: "Client",
+          tasker_name: "Freelance worker",
+          role: "client" as const,
+        };
+      });
+
+      const map = new Map<string, Row>();
+      [...localBookings, ...remoteRows].forEach((r) => map.set(r.id, r));
+      const sorted = Array.from(map.values()).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      setRows(sorted);
       setLoading(false);
     })();
   }, [user]);

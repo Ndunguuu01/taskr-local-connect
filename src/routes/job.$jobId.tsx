@@ -8,12 +8,33 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMockWorkers } from "@/lib/mock-workers";
 import { MapPin, Calendar, Wallet, Star, Users, Loader2 } from "lucide-react";
 
+import { LocalStore } from "@/lib/local-store";
+
 export const Route = createFileRoute("/job/$jobId")({
   loader: async ({ params }) => {
-    const { data } = await (supabase.rpc as any)("get_job_public", { _job_id: params.jobId });
-    const row = Array.isArray(data) ? data[0] : null;
-    if (!row) throw notFound();
-    return row;
+    try {
+      const { data } = await (supabase.rpc as any)("get_job_public", { _job_id: params.jobId });
+      const row = Array.isArray(data) ? data[0] : null;
+      if (row) return row;
+    } catch {}
+
+    const localJob = LocalStore.getJobs().find((j) => j.id === params.jobId);
+    if (localJob) {
+      return {
+        id: localJob.id,
+        title: localJob.title,
+        description: localJob.description,
+        category: localJob.category,
+        budget: localJob.budget,
+        location_address: localJob.location_address,
+        lat: localJob.lat,
+        lng: localJob.lng,
+        status: localJob.status,
+        scheduled_date: localJob.scheduled_date,
+        client_name: localJob.client_name ?? "Client",
+      };
+    }
+    throw notFound();
   },
   head: ({ loaderData }: any) => ({
     meta: [
