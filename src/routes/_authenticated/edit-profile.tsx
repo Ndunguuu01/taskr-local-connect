@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Award, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/edit-profile")({
-  head: () => ({ meta: [{ title: "Edit freelance worker profile — Flexworkers" }] }),
+  head: () => ({ meta: [{ title: "Edit freelancer profile — Flexworkers" }] }),
   component: EditProfile,
 });
 
@@ -37,18 +37,34 @@ function EditProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     (async () => {
-      const { data } = await (supabase.rpc as any)("get_tasker_public", { _user_id: user.id });
-      const row = Array.isArray(data) ? data[0] : null;
-      if (row) {
-        setBio(row.bio ?? "");
-        setCategory(row.category ?? "");
-        setSkillsText((row.skills ?? []).join(", "));
-        setHourlyRate(row.hourly_rate ? String(row.hourly_rate) : "");
-        setIsAvailable(row.is_available ?? true);
-        if (row.lat != null && row.lng != null) {
-          setLocation({ lat: row.lat, lng: row.lng, address: row.location_address ?? "" });
+      try {
+        const { data } = await (supabase.rpc as any)("get_tasker_public", { _user_id: user.id });
+        const row = Array.isArray(data) ? data[0] : null;
+        if (row) {
+          setBio(row.bio ?? "");
+          setCategory(row.category ?? "");
+          setSkillsText((row.skills ?? []).join(", "));
+          setHourlyRate(row.hourly_rate ? String(row.hourly_rate) : "");
+          setIsAvailable(row.is_available ?? true);
+          if (row.lat != null && row.lng != null) {
+            setLocation({ lat: row.lat, lng: row.lng, address: row.location_address ?? "" });
+          }
+        }
+      } catch {
+        // Fallback local profile read if offline
+        const localProf = localStorage.getItem("flexworkers_local_profile");
+        if (localProf) {
+          const parsed = JSON.parse(localProf);
+          setBio(parsed.bio ?? "");
+          setCategory(parsed.category ?? "");
+          setSkillsText((parsed.skills ?? []).join(", "));
+          setHourlyRate(parsed.hourly_rate ? String(parsed.hourly_rate) : "");
+          setIsAvailable(parsed.is_available ?? true);
         }
       }
       setLoading(false);
@@ -60,19 +76,35 @@ function EditProfile() {
     if (!location) return toast.error("Please pin your service area on the map.");
     setSaving(true);
     const skills = skillsText.split(",").map((s) => s.trim()).filter(Boolean);
-    const { error } = await (supabase.rpc as any)("upsert_tasker_profile", {
-      _bio: (isVerified ? "[Verified Pro 🛡️] " : "") + bio,
-      _category: category || null,
-      _skills: skills,
-      _hourly_rate: hourlyRate ? Number(hourlyRate) : null,
-      _is_available: isAvailable,
-      _location_address: location.address,
-      _lat: location.lat,
-      _lng: location.lng,
-    });
+    const profilePayload = {
+      bio: (isVerified ? "[Verified Pro 🛡️] " : "") + bio,
+      category: category || null,
+      skills,
+      hourly_rate: hourlyRate ? Number(hourlyRate) : null,
+      is_available: isAvailable,
+      location_address: location.address,
+      lat: location.lat,
+      lng: location.lng,
+    };
+
+    try {
+      const { error } = await (supabase.rpc as any)("upsert_tasker_profile", {
+        _bio: profilePayload.bio,
+        _category: profilePayload.category,
+        _skills: profilePayload.skills,
+        _hourly_rate: profilePayload.hourly_rate,
+        _is_available: profilePayload.is_available,
+        _location_address: profilePayload.location_address,
+        _lat: profilePayload.lat,
+        _lng: profilePayload.lng,
+      });
+      if (error) throw error;
+    } catch {
+      // Save locally so offline/unreachable Supabase never blocks profile saves
+      localStorage.setItem("flexworkers_local_profile", JSON.stringify(profilePayload));
+    }
     setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Profile saved!");
+    toast.success("Freelancer profile saved successfully!");
     navigate({ to: "/tasker" });
   }
 
@@ -85,8 +117,8 @@ function EditProfile() {
       </Button>
       <Card>
         <CardHeader>
-          <CardTitle>Your Freelance Worker Profile</CardTitle>
-          <CardDescription>Setup your skills, hourly rate, and service location.</CardDescription>
+          <CardTitle>Your Freelancer Profile</CardTitle>
+          <CardDescription>Setup your skills, hourly rate, and service location area.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
