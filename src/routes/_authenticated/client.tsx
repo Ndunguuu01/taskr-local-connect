@@ -35,7 +35,7 @@ function ClientDashboard() {
           <h1 className="text-3xl font-bold tracking-tight">Client dashboard</h1>
         </div>
         <div className="flex gap-2">
-          <Button asChild variant="outline"><Link to="/taskers">Browse taskers</Link></Button>
+          <Button asChild variant="outline"><Link to="/taskers">Browse freelance workers</Link></Button>
           <Button asChild size="lg"><Link to="/post-job"><Plus className="mr-2 h-4 w-4" /> Post a job</Link></Button>
         </div>
       </div>
@@ -55,7 +55,7 @@ function ClientDashboard() {
             <div className="flex flex-col items-center gap-3 py-10 text-center">
               <div className="rounded-full bg-accent p-4 text-primary"><Briefcase className="h-6 w-6" /></div>
               <p className="font-medium">No jobs yet</p>
-              <p className="max-w-sm text-sm text-muted-foreground">Post your first task and get matched with nearby taskers.</p>
+              <p className="max-w-sm text-sm text-muted-foreground">Post your first task and get matched with nearby freelance workers.</p>
               <Button asChild className="mt-2"><Link to="/post-job">Post a job</Link></Button>
             </div>
           ) : (

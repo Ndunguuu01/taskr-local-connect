@@ -202,7 +202,7 @@ function AuthPage() {
             <CardHeader>
               <CardTitle>{mode === "signup" ? "Create your account" : "Welcome back"}</CardTitle>
               <CardDescription>
-                {mode === "signup" ? "Join Flexworkers as a client or tasker." : "Log in to continue."}
+                {mode === "signup" ? "Join Flexworkers as a client or Freelance worker." : "Log in to continue."}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -221,14 +221,14 @@ function AuthPage() {
                             <RadioGroupItem id="r-client" value="client" />
                             <span className="font-medium">Hire help</span>
                           </div>
-                          <span className="mt-1 pl-6 text-xs text-muted-foreground">Post jobs</span>
+                          <span className="mt-1 pl-6 text-xs text-muted-foreground">Post jobs & hire</span>
                         </Label>
                         <Label htmlFor="r-tasker" className="flex cursor-pointer flex-col rounded-lg border border-input p-3 hover:bg-accent has-[:checked]:border-primary has-[:checked]:bg-accent">
                           <div className="flex items-center gap-2">
                             <RadioGroupItem id="r-tasker" value="tasker" />
-                            <span className="font-medium">Earn money</span>
+                            <span className="font-medium">Work as Freelancer</span>
                           </div>
-                          <span className="mt-1 pl-6 text-xs text-muted-foreground">Offer skills</span>
+                          <span className="mt-1 pl-6 text-xs text-muted-foreground">Offer your skills</span>
                         </Label>
                       </RadioGroup>
                     </div>

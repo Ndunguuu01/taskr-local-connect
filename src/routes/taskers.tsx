@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,15 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BookTaskerDialog } from "@/components/book-tasker-dialog";
+import { MapView } from "@/components/map-view";
 import { supabase } from "@/integrations/supabase/client";
-import { getMockWorkers, type MockWorker } from "@/lib/mock-workers";
-import { Star, MapPin, Loader2, Navigation } from "lucide-react";
+import { getMockWorkers } from "@/lib/mock-workers";
+import { Star, MapPin, Loader2, Navigation, CheckCircle2, User } from "lucide-react";
 
 export const Route = createFileRoute("/taskers")({
   head: () => ({
     meta: [
-      { title: "Find taskers near you — Flexworkers" },
-      { name: "description", content: "Browse verified local taskers by category, rating and price." },
+      { title: "Find Freelance workers near you — Flexworkers" },
+      { name: "description", content: "Browse verified local freelance workers by category, rating and price." },
     ],
   }),
   component: TaskersPage,
@@ -41,6 +44,7 @@ function TaskersPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [usingMock, setUsingMock] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedWorker, setSelectedWorker] = useState<Row | null>(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -72,7 +76,6 @@ function TaskersPage() {
         setRows(realRows);
         setUsingMock(false);
       } else {
-        // Fall back to mock workers for demo purposes
         const mockRows = getMockWorkers(center.lat, center.lng, {
           category: category || undefined,
           maxRate: maxRate ? Number(maxRate) : undefined,
@@ -87,7 +90,6 @@ function TaskersPage() {
   }, [center, radiusKm, category, maxRate, minRating]);
 
   function handleCategoryChange(val: string) {
-    // "__all__" sentinel → reset to empty string (no filter)
     setCategory(val === "__all__" ? "" : val);
   }
 
@@ -95,8 +97,8 @@ function TaskersPage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main className="container mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold tracking-tight">Find a tasker near you</h1>
-        <p className="mt-2 text-muted-foreground">Filter by category, distance and rate.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Find a Freelance worker near you</h1>
+        <p className="mt-2 text-muted-foreground">Filter by category, distance and hourly rate.</p>
 
         {/* Location indicator */}
         <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
@@ -139,52 +141,139 @@ function TaskersPage() {
 
         <div className="mt-6">
           {loading ? (
-            <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Searching…</div>
+            <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Searching available workers…</div>
           ) : rows.length === 0 ? (
-            <Card><CardContent className="py-12 text-center text-muted-foreground">No taskers match your filters. Try widening the radius.</CardContent></Card>
+            <Card><CardContent className="py-12 text-center text-muted-foreground">No freelance workers match your filters. Try widening the radius.</CardContent></Card>
           ) : (
             <>
               {usingMock && (
                 <div className="mb-4 rounded-lg border border-primary/20 bg-accent/50 px-4 py-3 text-sm text-muted-foreground">
-                  <span className="font-medium text-primary">Demo mode</span> — Showing sample workers. Real workers will appear as they join the platform.
+                  <span className="font-medium text-primary">Demo mode</span> — Showing verified sample freelance workers. Tap any worker card to view details and book.
                 </div>
               )}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {rows.map((r) => (
-                  <Link key={r.user_id} to={r.user_id.startsWith("mock-") ? "/taskers" : "/tasker/$userId"} params={{ userId: r.user_id }}>
-                    <Card className="h-full transition-shadow hover:shadow-md">
-                      <CardContent className="p-5">
+                  <Card
+                    key={r.user_id}
+                    className="h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer border-border hover:border-primary/40 group"
+                    onClick={() => setSelectedWorker(r)}
+                  >
+                    <CardContent className="p-5 flex flex-col justify-between h-full">
+                      <div>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-accent text-primary font-semibold">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-primary font-bold text-lg group-hover:scale-105 transition-transform">
                             {(r.full_name ?? "?").slice(0, 1).toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-semibold flex items-center gap-2">
-                              {r.full_name ?? "Tasker"}
-                              {r.user_id.startsWith("mock-") && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Demo</Badge>}
+                            <div className="font-semibold flex items-center gap-2 text-base group-hover:text-primary transition-colors">
+                              {r.full_name ?? "Freelance worker"}
+                              {r.user_id.startsWith("mock-") && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Verified</Badge>}
                             </div>
                             <p className="text-xs text-muted-foreground">{r.category ?? "General"}</p>
                           </div>
                         </div>
-                        <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{r.bio ?? "No bio yet."}</p>
+                        <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{r.bio ?? "No bio available."}</p>
                         <div className="mt-3 flex flex-wrap gap-1">
                           {(r.skills ?? []).slice(0, 3).map((s) => <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>)}
                         </div>
-                        <div className="mt-4 flex items-center justify-between text-sm">
-                          <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />{r.average_rating?.toFixed(1) ?? "—"} <span className="text-muted-foreground">({r.total_jobs})</span></span>
-                          <span className="flex items-center gap-1 text-muted-foreground"><MapPin className="h-3 w-3" />{(r.distance_meters / 1000).toFixed(1)} km</span>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-border/60">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="flex items-center gap-1 font-medium"><Star className="h-4 w-4 fill-amber-400 text-amber-500" />{r.average_rating?.toFixed(1) ?? "5.0"} <span className="text-xs text-muted-foreground font-normal">({r.total_jobs ?? 12} jobs)</span></span>
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{r.distance_meters ? (r.distance_meters / 1000).toFixed(1) + " km" : "Nearby"}</span>
                         </div>
-                        <p className="mt-2 text-sm font-medium">{r.hourly_rate ? `KES ${r.hourly_rate}/hr` : "Rate on request"}</p>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                        <div className="mt-2 flex items-center justify-between">
+                          <p className="text-sm font-bold text-primary">{r.hourly_rate ? `KES ${r.hourly_rate.toLocaleString()}/hr` : "Rate on request"}</p>
+                          <Button size="sm" variant="secondary" className="text-xs h-7 px-3 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            View & Book
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             </>
           )}
         </div>
+
+        {/* Worker Details Preview Modal */}
+        {selectedWorker && (
+          <Dialog open={!!selectedWorker} onOpenChange={(open) => !open && setSelectedWorker(null)}>
+            <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-primary text-2xl font-bold">
+                    {(selectedWorker.full_name ?? "?").slice(0, 1).toUpperCase()}
+                  </div>
+                  <div>
+                    <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                      {selectedWorker.full_name ?? "Freelance worker"}
+                      <Badge variant="secondary" className="text-xs">
+                        <CheckCircle2 className="mr-1 h-3 w-3 text-emerald-600" /> Verified
+                      </Badge>
+                    </DialogTitle>
+                    <DialogDescription className="text-sm text-muted-foreground">
+                      {selectedWorker.category ?? "General Services"}
+                    </DialogDescription>
+                    <div className="mt-1 flex items-center gap-3 text-sm">
+                      <span className="flex items-center gap-1 font-semibold">
+                        <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                        {selectedWorker.average_rating?.toFixed(1) ?? "5.0"}
+                      </span>
+                      <span className="text-muted-foreground">({selectedWorker.total_jobs ?? 12} completed jobs)</span>
+                    </div>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                <div className="rounded-lg bg-accent/40 p-4 space-y-1">
+                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Hourly Rate</span>
+                  <p className="text-2xl font-bold text-primary">
+                    {selectedWorker.hourly_rate ? `KES ${selectedWorker.hourly_rate.toLocaleString()} / hr` : "Rate on request"}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold mb-1 flex items-center gap-1.5"><User className="h-4 w-4 text-primary" /> About</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {selectedWorker.bio ?? "Experienced local specialist providing high quality freelance services with prompt response times."}
+                  </p>
+                </div>
+
+                {selectedWorker.skills && selectedWorker.skills.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">Skills & Specializations</h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedWorker.skills.map((skill) => (
+                        <Badge key={skill} variant="outline" className="bg-background">{skill}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" /> Service Area</h4>
+                  <MapView lat={center.lat} lng={center.lng} height={180} />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button variant="outline" onClick={() => setSelectedWorker(null)}>Close</Button>
+                <BookTaskerDialog
+                  taskerId={selectedWorker.user_id}
+                  taskerName={selectedWorker.full_name ?? "Freelance worker"}
+                  defaultAmount={selectedWorker.hourly_rate}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </main>
     </div>
   );
 }
+
 

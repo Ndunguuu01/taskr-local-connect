@@ -113,7 +113,7 @@ export function LocationPicker({
   const [searching, setSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Commit a location: move marker, reverse-geocode, emit onChange
   const commit = useCallback(

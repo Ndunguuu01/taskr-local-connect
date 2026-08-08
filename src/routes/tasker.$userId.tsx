@@ -16,12 +16,12 @@ export const Route = createFileRoute("/tasker/$userId")({
   },
   head: ({ loaderData }: any) => ({
     meta: [
-      { title: `${loaderData?.full_name ?? "Tasker"} — Flexworkers` },
-      { name: "description", content: loaderData?.bio?.slice(0, 150) ?? "Verified tasker on Flexworkers." },
+      { title: `${loaderData?.full_name ?? "Freelance worker"} — Flexworkers` },
+      { name: "description", content: loaderData?.bio?.slice(0, 150) ?? "Verified freelance worker on Flexworkers." },
     ],
   }),
   errorComponent: () => <p className="p-8 text-center text-muted-foreground">Could not load this profile.</p>,
-  notFoundComponent: () => <p className="p-8 text-center text-muted-foreground">Tasker not found.</p>,
+  notFoundComponent: () => <p className="p-8 text-center text-muted-foreground">Freelance worker not found.</p>,
   component: TaskerProfile,
 });
 

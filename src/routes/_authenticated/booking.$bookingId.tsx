@@ -8,8 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { ChatPanel } from "@/components/chat-panel";
 import { StarRatingInput, StarRating } from "@/components/star-rating";
+import { MpesaPaymentDialog } from "@/components/mpesa-payment-dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Wallet, Calendar } from "lucide-react";
+import { ArrowLeft, Wallet, Calendar, CheckCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/booking/$bookingId")({
   head: () => ({ meta: [{ title: "Booking — Flexworkers" }] }),
@@ -24,6 +25,7 @@ type Detail = {
   status: string;
   amount: number | null;
   payment_status: string | null;
+  mpesa_transaction_id?: string | null;
   scheduled_date: string | null;
   client_id: string;
   client_name: string | null;
@@ -99,14 +101,18 @@ function BookingDetail() {
         <div>
           <div className="flex items-center gap-2">
             <Badge>{b.status}</Badge>
-            {b.payment_status && <Badge variant="outline">Payment: {b.payment_status}</Badge>}
+            {b.payment_status && (
+              <Badge variant={b.payment_status === "paid" ? "default" : "outline"} className={b.payment_status === "paid" ? "bg-emerald-600" : ""}>
+                Payment: {b.payment_status}
+              </Badge>
+            )}
           </div>
           <h1 className="mt-2 text-2xl font-bold tracking-tight">{b.job_title}</h1>
           <p className="text-sm text-muted-foreground">
-            {isClient ? "Tasker" : "Client"}: {other ?? "—"}
+            {isClient ? "Freelance Worker" : "Client"}: {other ?? "—"}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {b.status === "pending" && !isClient && (
             <>
               <Button variant="outline" onClick={() => changeStatus("declined")}>Decline</Button>
@@ -121,6 +127,13 @@ function BookingDetail() {
           )}
           {(b.status === "pending" || b.status === "accepted") && isClient && (
             <Button variant="outline" onClick={() => changeStatus("cancelled")}>Cancel</Button>
+          )}
+          {isClient && b.payment_status !== "paid" && (
+            <MpesaPaymentDialog
+              bookingId={b.id}
+              amount={b.amount ?? 1500}
+              onSuccess={load}
+            />
           )}
         </div>
       </div>
@@ -168,15 +181,44 @@ function BookingDetail() {
         </div>
 
         <div className="space-y-4">
-          <Card>
-            <CardContent className="space-y-3 p-5 text-sm">
+          <Card className="border-emerald-100 bg-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Payment Summary</span>
+                {b.payment_status === "paid" && (
+                  <span className="flex items-center gap-1 text-xs text-emerald-600 font-semibold">
+                    <CheckCircle2 className="h-4 w-4" /> Paid
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 p-5 text-sm pt-0">
               {b.amount != null && <div className="flex items-center gap-2"><Wallet className="h-4 w-4 text-primary" /> KES {b.amount}</div>}
               {b.scheduled_date && <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" /> {new Date(b.scheduled_date).toLocaleString()}</div>}
+
+              {b.payment_status === "paid" ? (
+                <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800 space-y-1">
+                  <p className="font-semibold flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Payment Confirmed</p>
+                  {b.mpesa_transaction_id && <p>M-Pesa Ref: <span className="font-mono font-bold">{b.mpesa_transaction_id}</span></p>}
+                </div>
+              ) : isClient ? (
+                <div className="pt-2">
+                  <MpesaPaymentDialog
+                    bookingId={b.id}
+                    amount={b.amount ?? 1500}
+                    onSuccess={load}
+                  />
+                </div>
+              ) : (
+                <Badge variant="outline" className="w-full justify-center py-1">Payment Pending from Client</Badge>
+              )}
+
               <div className="pt-2">
                 <Link to="/job/$jobId" params={{ jobId: b.job_id }} className="text-primary hover:underline">View job details →</Link>
               </div>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader><CardTitle>Job brief</CardTitle></CardHeader>
             <CardContent><p className="whitespace-pre-wrap text-sm text-muted-foreground">{b.job_description}</p></CardContent>
@@ -186,3 +228,4 @@ function BookingDetail() {
     </main>
   );
 }
+

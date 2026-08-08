@@ -47,7 +47,7 @@ export function BookTaskerDialog({ taskerId, taskerName, defaultAmount }: { task
   if (!user) {
     return (
       <Button onClick={() => navigate({ to: "/auth", search: { mode: "signup", role: "client" } })}>
-        Book this tasker
+        Book this Freelance worker
       </Button>
     );
   }
@@ -56,11 +56,11 @@ export function BookTaskerDialog({ taskerId, taskerName, defaultAmount }: { task
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Book this tasker</Button>
+        <Button>Book this Freelance worker</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Book {taskerName ?? "tasker"}</DialogTitle>
+          <DialogTitle>Book {taskerName ?? "Freelance worker"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">

@@ -8,7 +8,7 @@ import { Wallet, Wrench, Star, User, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/tasker")({
-  head: () => ({ meta: [{ title: "Tasker dashboard — Flexworkers" }] }),
+  head: () => ({ meta: [{ title: "Freelance worker dashboard — Flexworkers" }] }),
   component: TaskerDashboard,
 });
 
@@ -44,7 +44,7 @@ function TaskerDashboard() {
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">Welcome{user?.email ? `, ${user.email.split("@")[0]}` : ""}</p>
-          <h1 className="text-3xl font-bold tracking-tight">Tasker dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Freelance worker dashboard</h1>
         </div>
         <Button asChild size="lg" variant="outline"><Link to="/edit-profile"><User className="mr-2 h-4 w-4" /> {profile ? "Edit profile" : "Create profile"}</Link></Button>
       </div>
